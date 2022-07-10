@@ -66,14 +66,14 @@ async function searchMatches(week, teamArray) {
   const teamDragons = [];  
   
   $('table.sb th.sb-teamname span.teamname > a').each((i, element) => teamNames.push($(element).attr('title')));
-  $('table.sb th.side-blue').each((i, element) => matchWinners.push($(element).hasClass('sb-score-winner') ? 1 : 2));
+  $('table.sb tr:nth-child(2) th.side-blue').each((i, element) => matchWinners.push($(element).hasClass('sb-score-winner') && $(element).text() == 1 ? 1 : 2));
   $('table.sb div.sb-header-Gold').each((i, element) => teamGold.push(parseFloat($(element).text().replace(/[a-zA-Z\s]*$/, '').trim())));
   $('table.sb div.sb-header-Kills').each((i, element) => teamKills.push(parseInt($(element).text().trim())));
   $('table.sb div.sb-p-stat-cs').each((i, element) => teamCs.push(parseInt($(element).text())));
   $('table.sb div[title=Towers]').each((i, element) => teamTowers.push(parseInt($(element).text().trim())));
   $('table.sb div[title=Barons]').each((i, element) => teamBarons.push(parseInt($(element).text().trim())));
   $('table.sb div[title=Dragons]').each((i, element) => teamDragons.push(parseInt($(element).text().trim())));
-  
+
   const matchDataToSystem = {
     gold: [],
     kills: [],
@@ -141,10 +141,11 @@ async function searchMatches(week, teamArray) {
       dragonsBlue: teamDragons[2 * i],
       dragonsRed: teamDragons[2 * i + 1],
     });
-
+    
     matchDataToSystem.matchesDiff.push({
       blueTeam: teamArray[teamNames[2 * i]],
       redTeam: teamArray[teamNames[2 * i + 1]],
+      winner: matchWinners[i] == 1 ? teamArray[teamNames[2 * i]] : teamArray[teamNames[2 * i + 1]],
       gold: teamGold[2 * i] - teamGold[2 * i + 1],
       kills: teamKills[2 * i] - teamKills[2 * i + 1],
       cs: teamCs.slice(5 * i, 5 * (i + 1))

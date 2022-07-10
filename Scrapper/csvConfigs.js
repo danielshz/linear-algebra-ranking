@@ -36,6 +36,7 @@ const csvHeaders = {
   matchesDiff: [
     { id: 'blueTeam', title: 'BlueTeam' },
     { id: 'redTeam', title: 'RedTeam' },
+    { id: 'winner', title: 'Winner' },
     { id: 'gold', title: 'Gold' },
     { id: 'kills', title: 'Kills' },
     { id: 'cs', title: 'Cs' },
