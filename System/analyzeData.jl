@@ -28,15 +28,15 @@ function inf_solucoes_ax_b(A, b)
 end
 
 function calculateDataVictoryPercent(path, column)
-  df = CSV.read(path, DataFrame)
+  dataframe = CSV.read(path, DataFrame)
 
   count = 0
-  matchQuantity, _ = size(df)
+  matchQuantity, _ = size(dataframe)
 
   for i in 1:matchQuantity
-    if df[i, 3] == df[i, 1] && df[i, column] > 0
+    if dataframe[i, 3] == dataframe[i, 1] && dataframe[i, column] > 0
       count += 1
-    elseif df[i, 3] == df[i, 2] && df[i, column] < 0
+    elseif dataframe[i, 3] == dataframe[i, 2] && dataframe[i, column] < 0
       count += 1
     end
   end
@@ -45,7 +45,7 @@ function calculateDataVictoryPercent(path, column)
 end
 
 function readRunSystem(path, matchQuantity)
-  df = CSV.read(path, DataFrame)
+  dataframe = CSV.read(path, DataFrame)
   teams = CSV.read("../Data/Teams.csv", DataFrame)
   teamsQuantity, _ = size(teams)
 
@@ -53,9 +53,9 @@ function readRunSystem(path, matchQuantity)
   b = zeros(matchQuantity, 1)
 
   for i in 1:matchQuantity
-    A[i, df[i, 1]] = 1
-    A[i, df[i, 3]] = -1
-    b[i, 1] = df[i, 2]
+    A[i, dataframe[i, 1]] = 1
+    A[i, dataframe[i, 3]] = -1
+    b[i, 1] = dataframe[i, 2]
   end
 
   try
@@ -67,20 +67,21 @@ function readRunSystem(path, matchQuantity)
     A = [A; zeroRow]
     b = [b; 1]
 
-    return A \ b
+    x = A \ b
+    return x
   end 
 end
 
-function runSystem(matchQuantity, df, teams)
+function runSystem(matchQuantity, dataframe, teams)
   teamsQuantity, _ = size(teams)
 
   A = zeros(matchQuantity, teamsQuantity)
   b = zeros(matchQuantity, 1)
 
   for i in 1:matchQuantity
-    A[i, df[i, 1]] = 1
-    A[i, df[i, 3]] = -1
-    b[i, 1] = df[i, 2]
+    A[i, dataframe[i, 1]] = 1
+    A[i, dataframe[i, 3]] = -1
+    b[i, 1] = dataframe[i, 2]
   end
 
   try
@@ -93,7 +94,7 @@ function runSystem(matchQuantity, df, teams)
     b = [b; 1]
     x = A \ b
 
-    return (A \ b, A, b)
+    return (x, A, b)
   end 
 end
 
@@ -108,6 +109,54 @@ function classifyTeams(x)
 
   return teamList
 end
+
+function getNthPlace(matchesLimit, place, dataframe, teamsDf)
+  nthPlace = []
+
+  for i in 1:div(nrow(dataframe), matchesLimit)
+    c = runSystem(i * matchesLimit, dataframe, teamsDf)[1]
+    ranking = classifyTeams(c)
+    push!(nthPlace, ranking[place][1])
+  end
+
+  return nthPlace
+end
+
+function calculateError(matchesLimit, place, dataframe, teamsDf)
+  absoluteError = []
+  relativeError = []
+
+  for i in 1:div(nrow(dataframe), matchesLimit)
+    x, A, b = runSystem(i * matchesLimit, dataframe, teamsDf)
+    p = A * x
+
+    push!(absoluteError, dist(p, b))
+    push!(relativeError, cos(p, b))
+  end
+
+  return absoluteError, relativeError
+end
+
+function magnitude(x)
+  tam = x'x
+  return sqrt(tam)
+end
+
+function dist(x, y)
+  return sqrt((x-y)'*(x-y))[1]
+end
+
+function cos(x, y)
+  return (x'*y / (magnitude(x) * magnitude(y)))[1]
+end
+
+teamsCsv = CSV.read("../Data/Teams.csv", DataFrame)
+goldCsv = CSV.read("../Data/Gold.csv", DataFrame)
+towersCsv = CSV.read("../Data/Towers.csv", DataFrame)
+killsCsv = CSV.read("../Data/Kills.csv", DataFrame)
+dragonsCSv = CSV.read("../Data/Dragons.csv", DataFrame)
+baronsCSv = CSV.read("../Data/Barons.csv", DataFrame)
+csCSv = CSV.read("../Data/Cs.csv", DataFrame)
 
 # gold = calculateDataVictoryPercent("../Data/MatchesDiff.csv", 4)
 # kills = calculateDataVictoryPercent("../Data/MatchesDiff.csv", 5)
@@ -126,68 +175,33 @@ end
 # c = readRunSystem("../Data/Gold.csv", 90)
 # print(classifyTeams(c))
 
-# print('\n')
 # c = readRunSystem("../Data/Towers.csv", 90)
 # print(classifyTeams(c))
 
-# print('\n')
 # c = readRunSystem("../Data/Kills.csv", 90)
 # print(classifyTeams(c))
 
-# print('\n')
 # c = readRunSystem("../Data/Dragons.csv", 90)
 # print(classifyTeams(c))
 
-# print('\n')
 # c = readRunSystem("../Data/Barons.csv", 90)
 # print(classifyTeams(c))
 
-goldCsv = CSV.read("../Data/Gold.csv", DataFrame)
-towersCsv = CSV.read("../Data/Towers.csv", DataFrame)
-killsCsv = CSV.read("../Data/Kills.csv", DataFrame)
-teamsCsv = CSV.read("../Data/Teams.csv", DataFrame)
+# firstPlace = getNthPlace(5, 1, goldCsv, teamsCsv)
+# lastPlace = getNthPlace(5, 10, goldCsv, teamsCsv)
 
-firstPlace = []
-lastPlace = []
+# firstPlace = getNthPlace(5, 1, towersCsv, teamsCsv)
+# lastPlace = getNthPlace(5, 10, towersCsv, teamsCsv)
 
-for i in 1:18
-  c = runSystem(i * 5, goldCsv, teamsCsv)[1]
-  ranking = classifyTeams(c)
-  push!(firstPlace, ranking[1][1])
-  push!(lastPlace, ranking[length(ranking)][1])
-end
+# firstPlace = getNthPlace(5, 1, killsCsv, teamsCsv)
+# lastPlace = getNthPlace(5, 10, killsCsv, teamsCsv)
 
-print(firstPlace)
-print('\n')
-print(lastPlace)
+# firstPlace = getNthPlace(5, 1, dragonsCSv, teamsCsv)
+# lastPlace = getNthPlace(5, 10, dragonsCSv, teamsCsv)
 
-firstPlace = []
-lastPlace = []
+# firstPlace = getNthPlace(5, 1, baronsCSv, teamsCsv)
+# lastPlace = getNthPlace(5, 10, baronsCSv, teamsCsv)
 
-for i in 1:18
-  c = runSystem(i * 5, towersCsv, teamsCsv)[1]
-  ranking = classifyTeams(c)
-  push!(firstPlace, ranking[1][1])
-  push!(lastPlace, ranking[length(ranking)][1])
-end
-
-print('\n')
-print(firstPlace)
-print('\n')
-print(lastPlace)
-
-firstPlace = []
-lastPlace = []
-
-for i in 1:18
-  c = runSystem(i * 5, killsCsv, teamsCsv)[1]
-  ranking = classifyTeams(c)
-  push!(firstPlace, ranking[1][1])
-  push!(lastPlace, ranking[length(ranking)][1])
-end
-
-print('\n')
-print(firstPlace)
-print('\n')
-print(lastPlace)
-print('\n')
+# absolute, relative = calculateError(5, 1, goldCsv, teamsCsv)
+# absolute, relative = calculateError(5, 1, towersCsv, teamsCsv)
+# absolute, relative = calculateError(5, 1, killsCsv, teamsCsv)
