@@ -8,8 +8,6 @@
 * [Configuração](#setup)
 * [Execução](#exe)
 
-<br>
-
 ## 💻 Sobre o projeto <a name="about"></a>
 
 **League of Legends Ranking** trata-se de um projeto que visa classificar os times de um determinado campeonato de acordo com os dados fornecidos ao final da partida – ouro, torres destruídas, etc. Nesse contexto, há o programa que busca os dados necessários de um site (Scrapper) e a aplicação responsável pela parte algébrica do trabalho. Para mais detalhes teóricos acesse o relatório [clicando aqui](https://github.com/danielShz/Trabalho-Final-ALA/wiki/Relat%C3%B3rio).
